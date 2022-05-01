@@ -1,0 +1,7 @@
+#!/bin/ansible-playbook
+
+- hosts: raspberry
+  become: yes
+  tasks:
+    - name: Reboot
+      reboot:

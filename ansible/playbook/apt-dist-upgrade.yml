@@ -1,0 +1,29 @@
+#!/bin/ansible-playbook
+
+- hosts: raspberry
+  become: yes
+  tasks:
+    - name: Update sources.list with bullseye
+      ansible.builtin.replace:
+        path: /etc/apt/sources.list
+        regexp: 'buster'
+        replace: 'bullseye'
+    - name: Update sources.list.d/raspi.list with bullseye
+      ansible.builtin.replace:
+        path: /etc/apt/sources.list.d/raspi.list
+        regexp: 'buster'
+        replace: 'bullseye'
+    - name: Install libgcc-8-dev and gcc-8-base
+      apt:
+        update_cache: yes
+        autoremove: yes
+        state: present
+        pkg:
+          - gcc-8-base
+          - libgcc-8-dev
+    - name: Upgrade the OS (apt-get full-upgrade)
+      apt:
+        upgrade: full
+        autoremove: yes
+    - name: Reboot
+      reboot:

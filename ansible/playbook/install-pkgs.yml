@@ -1,0 +1,50 @@
+#!/bin/ansible-playbook
+
+- hosts: raspi-1
+  become: yes
+  tasks:
+    - name: Install packages
+      apt:
+        update_cache: yes
+        autoremove: yes
+        state: present
+        pkg:
+          - dnsutils
+          - vim
+          - git
+          - nodejs
+          - npm
+    - name: Checkout webthings-home
+      ansible.builtin.git:
+        repo: 'https://github.com/cescobaz/webthing-home.git'
+        dest: /opt/webthings-home
+        version: v1.0.0
+    - name: Install webthings-home packages
+      community.general.npm:
+        path: /opt/webthings-home
+        ci: yes
+        production: yes
+    - name: Install webthings-home service
+      ansible.builtin.copy:
+        remote_src: yes
+        src: /opt/webthings-home/scripts/webthings-home.service
+        dest: /etc/systemd/system/webthings-home.service
+        owner: pi
+        group: pi
+        mode: '0644'
+    - name: Setup webthings-home service WorkingDirectory
+      ansible.builtin.replace:
+        path: /etc/systemd/system/webthings-home.service
+        regexp: '.*WorkingDirectory.*'
+        replace: 'WorkingDirectory=/opt/webthings-home'
+    - name: Setup webthings-home service ExecStart
+      ansible.builtin.replace:
+        path: /etc/systemd/system/webthings-home.service
+        regexp: '.*ExecStart.*'
+        replace: 'ExecStart=/opt/webthings-home/scripts/run node'
+    - name: Enable and start webthings-home service
+      ansible.builtin.systemd:
+        name: webthings-home.service
+        state: started
+        enabled: yes
+

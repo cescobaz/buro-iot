@@ -1,0 +1,18 @@
+#!/bin/ansible-playbook
+
+- hosts: raspberry
+  become: yes
+  tasks:
+    - name: Update packages list
+      apt:
+        update_cache: yes
+    - name: Update all packages to their latest version
+      apt:
+        name: "*"
+        state: latest
+    - name: Remove useless packages from the cache
+      apt:
+        autoclean: yes
+    - name: Remove dependencies that are no longer required
+      apt:
+        autoremove: yes

@@ -1,0 +1,23 @@
+#!/bin/ansible-playbook
+
+- hosts: raspi-1
+  become: yes
+  tasks:
+    - name: Install packages
+      apt:
+        update_cache: yes
+        autoremove: yes
+        state: present
+        pkg:
+          - dnsutils
+          - pigpio
+          - pigpiod
+          - vim
+          - git
+          - mosquitto-clients
+    - name: Checkout webthings-home
+      ansible.builtin.git:
+        repo: 'https://github.com/cescobaz/buro-iot.git'
+        dest: /opt/buro-iot
+        version: latest
+
