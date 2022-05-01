@@ -15,7 +15,10 @@
           - vim
           - git
           - mosquitto-clients
+          - libmosquitto1
           - libmosquitto-dev # for building C program
+          - libpigpio1
+          - libpigpio-dev # for building C program
     - name: Checkout webthings-home
       ansible.builtin.git:
         repo: 'https://github.com/cescobaz/buro-iot.git'
