@@ -8,7 +8,7 @@
 
 int main(int argc, char *argv[]) {
   uint32_t interested_mask = argc > 0 ? strtol(argv[1], NULL, 0) : 0xFFFFFFFF;
-  fprintf(stderr, "%X\n", interested_mask);
+  fprintf(stderr, "interested_mask: %X\n", interested_mask);
   char output[OUTPUT_SIZE];
   gpioReport_t notification;
   size_t notification_size = sizeof(gpioReport_t);
@@ -46,7 +46,6 @@ int main(int argc, char *argv[]) {
 	gpio += 1;
 	mask = mask << 1;
       }
-      printf("\n");
       previous_notification_level = notification_level;
     }
   } while (r > 0);

@@ -1,14 +1,23 @@
 #!/bin/sh
 
-set -x
-
 mqtt_host=192.168.1.102
 mqtt_username=buro
 mqtt_password=ciao
 mqtt_topic=prova
 
+if [ "$#" -lt 1 ]; then
+  echo "Usage $0 GPIOX [GPIOY] [GPIOZ] ... [GPION]"
+  exit 1
+fi
+
+bitmask=0
+for arg do
+  bitmask=$((1 << $arg | $bitmask))
+done
+bitmask=$(printf '%X' $bitmask)
+echo "bitmask: $bitmask"
+
 handle=$(pigs no)
-bitmask=$(printf '%X' $((1 << 27)))
 pigs nb $handle "0x$bitmask"
 notifications_pipe="/dev/pigpio$handle"
 
