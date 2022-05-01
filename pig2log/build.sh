@@ -2,4 +2,6 @@
 
 set -e
 
-gcc -o pig2json pig2json.c
+src_path=$(dirname $(realpath $0))
+
+gcc -o "$src_path/pig2log" "$src_path/pig2log.c"

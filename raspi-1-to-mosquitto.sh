@@ -13,7 +13,7 @@ pigs nb $handle "0x$bitmask"
 notifications_pipe="/dev/pigpio$handle"
 
 cat $notifications_pipe |
-  ./pig2json |
+  ./pig2log/pig2log "0x$bitmask" |
   stdbuf -i0 -o0 sed 's/\([0-9]\+\) \([0-9]\+\)/{"gpio":\1,"value":\2}/' |
   xargs -I M bash -c "mosquitto_pub -h "$mqtt_host" -t "$mqtt_topic" -u "$mqtt_username" -P "$mqtt_password" -m 'M'"
 

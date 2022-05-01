@@ -7,6 +7,8 @@
 #define OUTPUT_SIZE 100
 
 int main(int argc, char *argv[]) {
+  uint32_t interested_mask = argc > 0 ? strtol(argv[1], NULL, 0) : 0xFFFFFFFF;
+  fprintf(stderr, "%X\n", interested_mask);
   char output[OUTPUT_SIZE];
   gpioReport_t notification;
   size_t notification_size = sizeof(gpioReport_t);
@@ -30,12 +32,13 @@ int main(int argc, char *argv[]) {
       memcpy(&notification, buffer + data_start, notification_size);
       data_start += notification_size;
       fprintf(stderr, "%d %d %d %X\n", notification.seqno, notification.flags, notification.tick, notification.level);
-      uint32_t level_changed_mask = notification.level ^ previous_notification_level;
+      uint32_t notification_level = interested_mask & notification.level;
+      uint32_t level_changed_mask = notification_level ^ previous_notification_level;
       uint32_t mask = 1;
       int gpio = 0;
       while (gpio < 32) {
 	if ((level_changed_mask & mask) != 0) {
-          int level = (notification.level & mask) == 0 ? 0 : 1;
+          int level = (notification_level & mask) == 0 ? 0 : 1;
           int len = snprintf(output, OUTPUT_SIZE, "%d %d\n\r", gpio, level);
 	  write(1, output, len);
 	  fsync(1);
@@ -44,7 +47,7 @@ int main(int argc, char *argv[]) {
 	mask = mask << 1;
       }
       printf("\n");
-      previous_notification_level = notification.level;
+      previous_notification_level = notification_level;
     }
   } while (r > 0);
   return 0;
