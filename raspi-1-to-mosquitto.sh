@@ -3,7 +3,9 @@
 mqtt_host=192.168.1.102
 mqtt_username=buro
 mqtt_password=ciao
-mqtt_topic=prova
+mqtt_topic=$mqtt_username/$(hostname)/things
+
+echo "topic: $mqtt_topic"
 
 if [ "$#" -lt 1 ]; then
   echo "Usage $0 GPIOX [GPIOY] [GPIOZ] ... [GPION]"
