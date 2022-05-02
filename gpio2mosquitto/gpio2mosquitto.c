@@ -97,12 +97,23 @@ void eventFuncEx(int event, int level, uint32_t tick, void *userdata) {
   snprintf(payload, DEFAULT_STR_SIZE, "gpio=%u&value=%d", event, level);
   char topic[DEFAULT_STR_SIZE];
   snprintf(topic, DEFAULT_STR_SIZE, "buro/%s/things/gpio-%u", data->hostname, event);
-  int result = mosquitto_publish(data->mosquitto, NULL, topic, strlen(payload), payload, 0, false);
-  if (result != MOSQ_ERR_SUCCESS) {
-    fprintf(stderr, "mosquitto_publish result = %d, errno %u\n", result, errno);
-    return;
+  int result;
+  int max_retry = 1;
+  do {
+    result = mosquitto_publish(data->mosquitto, NULL, topic, strlen(payload), payload, 0, false);
+    max_retry -= 1;
+    if (result != MOSQ_ERR_SUCCESS) {
+      fprintf(stderr, "mosquitto_publish result = %d, errno %u\n", result, errno);
+      printf("[info] reconnecting to mqtt\n");
+      result = mosquitto_reconnect(data->mosquitto);
+      if (result != MOSQ_ERR_SUCCESS) {
+        fprintf(stderr, "mosquitto_reconnect result = %d, errno %u\n", result, errno);
+        return;
+      }
+    }
+    printf("[info] published message: topic %s message %s\n", topic, payload);
   }
-  printf("[info] published message: topic %s message %s\n", topic, payload);
+  while (max_retry > 0);
 }
 
 int main(int argc, char *argv[]) {
