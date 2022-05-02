@@ -102,6 +102,10 @@ void eventFuncEx(int event, int level, uint32_t tick, void *userdata) {
   do {
     result = mosquitto_publish(data->mosquitto, NULL, topic, strlen(payload), payload, 0, false);
     max_retry -= 1;
+    if (result == MOSQ_ERR_SUCCESS) {
+      printf("[info] published message: topic %s message %s\n", topic, payload);
+      return;
+    }
     if (result != MOSQ_ERR_SUCCESS) {
       fprintf(stderr, "mosquitto_publish result = %d, errno %u\n", result, errno);
       printf("[info] reconnecting to mqtt\n");
@@ -111,7 +115,6 @@ void eventFuncEx(int event, int level, uint32_t tick, void *userdata) {
         return;
       }
     }
-    printf("[info] published message: topic %s message %s\n", topic, payload);
   }
   while (max_retry > 0);
 }
@@ -130,7 +133,8 @@ int main(int argc, char *argv[]) {
     result = mosquitto_username_pw_set(mosquitto, data.mosquitto_username, data.mosquitto_password);
     assert(result == MOSQ_ERR_SUCCESS);
   }
-  result = mosquitto_connect(mosquitto, data.mosquitto_host, data.mosquitto_port, 30);
+  result = mosquitto_tls_set(mosquitto, NULL, "/etc/ssl/certs", NULL, NULL, NULL);
+  result = mosquitto_connect(mosquitto, data.mosquitto_host, data.mosquitto_port, 29);
   assert(result == MOSQ_ERR_SUCCESS);
 
   for (int i = 0; i < data.gpio_in_count; i++) {
