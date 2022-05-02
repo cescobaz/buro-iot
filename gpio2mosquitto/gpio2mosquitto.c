@@ -134,6 +134,7 @@ int main(int argc, char *argv[]) {
     assert(result == MOSQ_ERR_SUCCESS);
   }
   result = mosquitto_tls_set(mosquitto, NULL, "/etc/ssl/certs", NULL, NULL, NULL);
+  assert(result == MOSQ_ERR_SUCCESS);
   result = mosquitto_connect(mosquitto, data.mosquitto_host, data.mosquitto_port, 29);
   assert(result == MOSQ_ERR_SUCCESS);
 
