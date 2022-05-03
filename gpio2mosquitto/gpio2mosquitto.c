@@ -7,6 +7,7 @@
 #include <mosquitto.h>
 #include <assert.h>
 #include <errno.h>
+#include <time.h>
 
 #define DEFAULT_STR_SIZE 100
 
@@ -31,7 +32,7 @@ typedef struct {
 } gpio2mosquitto_t;
 
 struct mosquitto* init_mosquitto(gpio2mosquitto_t *data) {
-  struct mosquitto *mosquitto = mosquitto_new(data->mosquitto_client_id, true, &data);
+  struct mosquitto *mosquitto = mosquitto_new(data->mosquitto_client_id, true, data);
   data->mosquitto = mosquitto;
   int result;
   if (data->mosquitto_username && data->mosquitto_password) {
@@ -121,10 +122,11 @@ void read_args(gpio2mosquitto_t *data, int argc, char *argv[]) {
 }
 
 void eventFuncEx(int event, int level, uint32_t tick, void *userdata) {
+  time_t now = time(NULL);
   printf("[info] event callback: event: %u, level: %d, tick: %u\n", event, level, tick);
-  gpio2mosquitto_t *data = userdata;
+  gpio2mosquitto_t *data = (gpio2mosquitto_t *)userdata;
   char payload[DEFAULT_STR_SIZE];
-  snprintf(payload, DEFAULT_STR_SIZE, "gpio=%u&value=%d", event, level);
+  snprintf(payload, DEFAULT_STR_SIZE, "{\"ut\":%ld,\"gpio\":%u,\"value\":%d}", now, event, level);
   char topic[DEFAULT_STR_SIZE];
   snprintf(topic, DEFAULT_STR_SIZE, "buro/%s/things/gpio-%u", data->hostname, event);
   int result;
@@ -154,7 +156,7 @@ void set_and_watch_input_gpio(gpio2mosquitto_t *data) {
     uint8_t gpio = data->gpio_in[i];
     printf("[info] set and watch input gpio %u\n", gpio);
     gpioSetMode(gpio, PI_INPUT);
-    gpioSetAlertFuncEx(gpio, &eventFuncEx, &data);
+    gpioSetAlertFuncEx(gpio, &eventFuncEx, data);
   }
 }
 void unwatch_input_gpio(gpio2mosquitto_t *data) {
@@ -179,6 +181,7 @@ int main(int argc, char *argv[]) {
   gpio2mosquitto_init(&data);
   read_args(&data, argc, argv);
   gethostname(data.hostname, DEFAULT_STR_SIZE);
+  printf("hostname %s\n", data.hostname);
   int result = 0;
 
   init_mosquitto(&data);
