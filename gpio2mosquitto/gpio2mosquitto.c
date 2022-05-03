@@ -135,12 +135,15 @@ int main(int argc, char *argv[]) {
   }
   result = mosquitto_tls_set(mosquitto, NULL, "/etc/ssl/certs", NULL, NULL, NULL);
   assert(result == MOSQ_ERR_SUCCESS);
-  result = mosquitto_connect(mosquitto, data.mosquitto_host, data.mosquitto_port, 29);
+  result = mosquitto_connect(mosquitto, data.mosquitto_host, data.mosquitto_port, 60);
   assert(result == MOSQ_ERR_SUCCESS);
+  result = mosquitto_loop_start(mosquitto);
+  assert(result == MOSQ_ERR_SUCCESS);
+  printf("[info] mosquitto initialized %s %d\n", data.mosquitto_host, data.mosquitto_port);
 
   for (int i = 0; i < data.gpio_in_count; i++) {
     uint8_t gpio = data.gpio_in[i];
-    printf("setting gpio %u\n", gpio);
+    printf("[info] setting gpio %u\n", gpio);
     gpioSetMode(gpio, PI_INPUT);
     gpioSetAlertFuncEx(gpio, &eventFuncEx, &data);
   }
@@ -151,6 +154,15 @@ int main(int argc, char *argv[]) {
   sigwait(&set, &sig);
   printf("terminate because signal %d\n", sig);
 
+  for (int i = 0; i < data.gpio_in_count; i++) {
+    uint8_t gpio = data.gpio_in[i];
+    printf("[info] un-setting gpio %u\n", gpio);
+    gpioSetAlertFuncEx(gpio, NULL, NULL);
+  }
+
+  mosquitto_disconnect(mosquitto);
+  mosquitto_loop_stop(mosquitto, false);
+  printf("[info] mosquitto disconnected\n");
   mosquitto_destroy(mosquitto);
   gpio2mosquitto_cleanup(&data);
   terminate();
