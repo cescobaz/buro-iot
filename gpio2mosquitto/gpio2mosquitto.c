@@ -30,6 +30,35 @@ typedef struct {
   uint8_t *gpio_out;
 } gpio2mosquitto_t;
 
+struct mosquitto* init_mosquitto(gpio2mosquitto_t *data) {
+  struct mosquitto *mosquitto = mosquitto_new(data->mosquitto_client_id, true, &data);
+  data->mosquitto = mosquitto;
+  int result;
+  if (data->mosquitto_username && data->mosquitto_password) {
+    result = mosquitto_username_pw_set(mosquitto, data->mosquitto_username, data->mosquitto_password);
+    assert(result == MOSQ_ERR_SUCCESS);
+  }
+  result = mosquitto_tls_set(mosquitto, NULL, "/etc/ssl/certs", NULL, NULL, NULL);
+  assert(result == MOSQ_ERR_SUCCESS);
+  result = mosquitto_connect(mosquitto, data->mosquitto_host, data->mosquitto_port, 60);
+  assert(result == MOSQ_ERR_SUCCESS);
+  result = mosquitto_loop_start(mosquitto);
+  assert(result == MOSQ_ERR_SUCCESS);
+  printf("[info] mosquitto initialized %s %d\n", data->mosquitto_host, data->mosquitto_port);
+  return mosquitto;
+}
+
+void cleanup_mosquitto(gpio2mosquitto_t *data) {
+  if (!data->mosquitto) {
+    return;
+  }
+  mosquitto_disconnect(data->mosquitto);
+  mosquitto_loop_stop(data->mosquitto, false);
+  printf("[info] mosquitto disconnected\n");
+  mosquitto_destroy(data->mosquitto);
+  data->mosquitto = NULL;
+}
+
 void gpio2mosquitto_init(gpio2mosquitto_t *data) {
   memset(data, 0, sizeof(gpio2mosquitto_t));
   data->hostname = malloc(DEFAULT_STR_SIZE);
@@ -38,6 +67,7 @@ void gpio2mosquitto_init(gpio2mosquitto_t *data) {
   data->gpio_out = malloc(sizeof(uint8_t) * 32);
 }
 void gpio2mosquitto_cleanup(gpio2mosquitto_t *data) {
+  cleanup_mosquitto(data);
   free(data->hostname);
   free(data->gpio_in);
   free(data->gpio_out);
@@ -91,7 +121,7 @@ void read_args(gpio2mosquitto_t *data, int argc, char *argv[]) {
 }
 
 void eventFuncEx(int event, int level, uint32_t tick, void *userdata) {
-  printf("[info] event callback: event: %u, level: %d, tick: %lu\n", event, level, tick);
+  printf("[info] event callback: event: %u, level: %d, tick: %u\n", event, level, tick);
   gpio2mosquitto_t *data = userdata;
   char payload[DEFAULT_STR_SIZE];
   snprintf(payload, DEFAULT_STR_SIZE, "gpio=%u&value=%d", event, level);
@@ -119,6 +149,30 @@ void eventFuncEx(int event, int level, uint32_t tick, void *userdata) {
   while (max_retry > 0);
 }
 
+void set_and_watch_input_gpio(gpio2mosquitto_t *data) {
+  for (int i = 0; i < data->gpio_in_count; i++) {
+    uint8_t gpio = data->gpio_in[i];
+    printf("[info] set and watch input gpio %u\n", gpio);
+    gpioSetMode(gpio, PI_INPUT);
+    gpioSetAlertFuncEx(gpio, &eventFuncEx, &data);
+  }
+}
+void unwatch_input_gpio(gpio2mosquitto_t *data) {
+  for (int i = 0; i < data->gpio_in_count; i++) {
+    uint8_t gpio = data->gpio_in[i];
+    printf("[info] unwatch input gpio %u\n", gpio);
+    gpioSetAlertFuncEx(gpio, NULL, NULL);
+  }
+}
+
+int wait_for_any_signal() {
+  sigset_t set;
+  sigfillset(&set);
+  int sig;
+  sigwait(&set, &sig);
+  printf("terminate because signal %d\n", sig);
+}
+
 int main(int argc, char *argv[]) {
   init();
   gpio2mosquitto_t data;
@@ -127,43 +181,14 @@ int main(int argc, char *argv[]) {
   gethostname(data.hostname, DEFAULT_STR_SIZE);
   int result = 0;
 
-  struct mosquitto *mosquitto = mosquitto_new(data.mosquitto_client_id, true, &data);
-  data.mosquitto = mosquitto;
-  if (data.mosquitto_username && data.mosquitto_password) {
-    result = mosquitto_username_pw_set(mosquitto, data.mosquitto_username, data.mosquitto_password);
-    assert(result == MOSQ_ERR_SUCCESS);
-  }
-  result = mosquitto_tls_set(mosquitto, NULL, "/etc/ssl/certs", NULL, NULL, NULL);
-  assert(result == MOSQ_ERR_SUCCESS);
-  result = mosquitto_connect(mosquitto, data.mosquitto_host, data.mosquitto_port, 60);
-  assert(result == MOSQ_ERR_SUCCESS);
-  result = mosquitto_loop_start(mosquitto);
-  assert(result == MOSQ_ERR_SUCCESS);
-  printf("[info] mosquitto initialized %s %d\n", data.mosquitto_host, data.mosquitto_port);
+  init_mosquitto(&data);
 
-  for (int i = 0; i < data.gpio_in_count; i++) {
-    uint8_t gpio = data.gpio_in[i];
-    printf("[info] setting gpio %u\n", gpio);
-    gpioSetMode(gpio, PI_INPUT);
-    gpioSetAlertFuncEx(gpio, &eventFuncEx, &data);
-  }
+  set_and_watch_input_gpio(&data);
 
-  sigset_t set;
-  sigfillset(&set);
-  int sig;
-  sigwait(&set, &sig);
-  printf("terminate because signal %d\n", sig);
+  wait_for_any_signal();
 
-  for (int i = 0; i < data.gpio_in_count; i++) {
-    uint8_t gpio = data.gpio_in[i];
-    printf("[info] un-setting gpio %u\n", gpio);
-    gpioSetAlertFuncEx(gpio, NULL, NULL);
-  }
+  unwatch_input_gpio(&data);
 
-  mosquitto_disconnect(mosquitto);
-  mosquitto_loop_stop(mosquitto, false);
-  printf("[info] mosquitto disconnected\n");
-  mosquitto_destroy(mosquitto);
   gpio2mosquitto_cleanup(&data);
   terminate();
   return 0;
