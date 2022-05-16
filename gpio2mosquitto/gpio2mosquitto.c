@@ -83,16 +83,16 @@ struct mosquitto *init_mosquitto(gpio2mosquitto_t *data) {
 void publish_self_state(gpio2mosquitto_t *data) {
   time_t now = time(NULL);
   char topic[DEFAULT_STR_SIZE];
-  snprintf(topic, DEFAULT_STR_SIZE, "buro/things/%s", data->hostname);
+  snprintf(topic, DEFAULT_STR_SIZE, "%s/things/%s", data->username,
+           data->device_name);
 
   char gpio[GPIO_MODES_SIZE + 1];
   memcpy(gpio, data->gpio_modes, GPIO_MODES_SIZE);
   gpio[GPIO_MODES_SIZE] = '\0';
 
   char payload[DEFAULT_STR_SIZE];
-  snprintf(payload, DEFAULT_STR_SIZE,
-           "{\"ut\":%ld,\"hostname\":%s,\"gpioModes\":\"%s\"}", now,
-           data->hostname, gpio);
+  snprintf(payload, DEFAULT_STR_SIZE, "{\"ut\":%ld,\"gpioModes\":\"%s\"}", now,
+           gpio);
   mosquitto_publish(data->mosquitto, NULL, topic, strlen(payload), payload, 0,
                     false);
 }
@@ -128,12 +128,16 @@ void eventFuncEx(int event, int level, uint32_t tick, void *userdata) {
   printf("[info] event callback: event: %u, level: %d, tick: %u\n", event,
          level, tick);
   gpio2mosquitto_t *data = (gpio2mosquitto_t *)userdata;
-  char topic[DEFAULT_STR_SIZE];
-  snprintf(topic, DEFAULT_STR_SIZE, "buro/things/%s.gpio.%u", data->hostname,
+  char device_name[DEFAULT_STR_SIZE];
+  snprintf(device_name, DEFAULT_STR_SIZE, "%s.gpio.%u", data->device_name,
            event);
+  char topic[DEFAULT_STR_SIZE];
+  snprintf(topic, DEFAULT_STR_SIZE, "%s/things/%s", data->username,
+           device_name);
   char payload[DEFAULT_STR_SIZE];
-  snprintf(payload, DEFAULT_STR_SIZE, "{\"ut\":%ld,\"gpio\":%u,\"value\":%d}",
-           now, event, level);
+  snprintf(payload, DEFAULT_STR_SIZE,
+           "{\"ut\":%ld,\"name\":\"%s\",\"gpio\":%u,\"value\":%d}", now,
+           device_name, event, level);
   int result;
   int max_retry = 1;
   do {
@@ -191,7 +195,7 @@ void set_gpio_modes(gpio2mosquitto_t *data, char *gpio_modes) {
   }
 }
 
-void set_gpio(gpio2mosquitto_t *data) {
+void apply_gpio_modes(gpio2mosquitto_t *data) {
   for (int gpio = 0; gpio < GPIO_MODES_SIZE; gpio++) {
     char mode = data->gpio_modes[gpio];
     set_gpio_mode(data, gpio, mode);
@@ -207,8 +211,6 @@ void unwatch_all_gpio(gpio2mosquitto_t *data) {
 
 void gpio2mosquitto_init(gpio2mosquitto_t *data) {
   memset(data, 0, sizeof(gpio2mosquitto_t));
-  data->hostname = malloc(DEFAULT_STR_SIZE);
-  gethostname(data->hostname, DEFAULT_STR_SIZE);
   data->mosquitto_port = 1883;
   memset(data->gpio_modes, '_', GPIO_MODES_SIZE);
 }
@@ -217,48 +219,73 @@ void gpio2mosquitto_cleanup(gpio2mosquitto_t *data) {
   unwatch_all_gpio(data);
   cleanup_mosquitto(data);
   write_gpio_modes(data);
-  free(data->hostname);
   memset(data, 0, sizeof(gpio2mosquitto_t));
+}
+
+void print_help() {
+  printf("Usage: gpio2mosquitto OPTIONS\n"
+         "--mqtt-client-id\n"
+         "--mqtt-host\n"
+         "--mqtt-port\n"
+         "--mqtt-username\n"
+         "--mqtt-password\n"
+         "--mqtt-topics-prefix\n"
+         "--gpio-modes-file\n");
 }
 
 void gpio2mosquitto_set_by_args(gpio2mosquitto_t *data, int argc,
                                 char *argv[]) {
   data->argc = argc;
   data->argv = argv;
+
+  uint8_t args_checks[] = {0, 0, 0, 0, 0, 0, 0};
   for (int i = 1; i < argc - 1; i += 2) {
     char *key = argv[i];
     char *value = argv[i + 1];
-    if (strcmp(key, "--client-id") == 0) {
+    if (strcmp(key, "--mqtt-client-id") == 0) {
       data->mosquitto_client_id = value;
-    } else if (strcmp(key, "--host") == 0) {
+    } else if (strcmp(key, "--mqtt-host") == 0) {
       data->mosquitto_host = value;
-    } else if (strcmp(key, "--port") == 0) {
+      args_checks[0] += 1;
+    } else if (strcmp(key, "--mqtt-port") == 0) {
       data->mosquitto_port = atoi(value);
-    } else if (strcmp(key, "--username") == 0) {
+      args_checks[1] += 1;
+    } else if (strcmp(key, "--mqtt-username") == 0) {
       data->mosquitto_username = value;
-    } else if (strcmp(key, "--password") == 0) {
+      args_checks[2] += 1;
+    } else if (strcmp(key, "--mqtt-password") == 0) {
       data->mosquitto_password = value;
-    } else if (strcmp(key, "--gpio-file") == 0) {
+      args_checks[3] += 1;
+    } else if (strcmp(key, "--gpio-modes-file") == 0) {
       data->gpio_modes_filepath = value;
-    } else if (strcmp(key, "--gpio-input") == 0) {
-      uint8_t gpio = atoi(value);
-      data->gpio_modes[gpio] = GPIO_MODE_INPUT;
-    } else if (strcmp(key, "--gpio-output") == 0) {
-      uint8_t gpio = atoi(value);
-      data->gpio_modes[gpio] = GPIO_MODE_OUTPUT;
+      args_checks[4] += 1;
+    } else if (strcmp(key, "--username") == 0) {
+      data->username = value;
+      args_checks[5] += 1;
+    } else if (strcmp(key, "--device-name") == 0) {
+      data->device_name = value;
+      args_checks[6] += 1;
     } else {
       fprintf(stderr, "[error] unknown arg %s\n", key);
+      print_help();
       exit(EXIT_CODE_UNKNOWN_ARG);
     }
   }
-  write_gpio_modes(data);
+
+  for (int i = 0; i < 7; i++) {
+    if (args_checks[i] != 1) {
+      fprintf(stderr, "[error] missing required arg %d\n", i);
+      print_help();
+      exit(EXIT_CODE_UNKNOWN_ARG);
+    }
+  }
 }
 
 void gpio2mosquitto_start(gpio2mosquitto_t *data) {
   data->state = STATE_STARTED;
   init_mosquitto(data);
   read_gpio_modes(data);
-  set_gpio(data);
+  apply_gpio_modes(data);
   publish_self_state(data);
   mosquitto_message_callback_set(data->mosquitto, &on_message);
 }

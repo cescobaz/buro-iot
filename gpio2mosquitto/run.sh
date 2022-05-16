@@ -5,7 +5,8 @@ set -e
 script_dir=$(dirname $(realpath $0))
 
 sudo ${script_dir}/gpio2mosquitto \
-	--host 'burelli.xyz' --port 8883 \
-	--username "buro.$(hostname)" --password "$(cat ${script_dir}/mqtt_pass)" \
-	--gpio-input 27 \
-  --gpio-file "${script_dir}/gpio_modes"
+  --username 'buro' --device-name "$(hostname)" \
+  --mqtt-host 'burelli.xyz' --mqtt-port 8883 \
+  --mqtt-username "buro.$(hostname)" \
+  --mqtt-password "$(cat ${script_dir}/mqtt_pass)" \
+  --gpio-modes-file "${script_dir}/gpio_modes"

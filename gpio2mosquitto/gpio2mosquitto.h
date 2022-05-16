@@ -12,19 +12,20 @@ typedef struct {
   int state;
   int argc;
   char **argv;
-  char *hostname;
+  char *username;
+  char *device_name;
   char *mosquitto_client_id;
   char *mosquitto_host;
   int mosquitto_port;
   char *mosquitto_username;
   char *mosquitto_password;
-  struct mosquitto *mosquitto;
-  char* gpio_modes_filepath;
+  char *gpio_modes_filepath;
   char gpio_modes[GPIO_MODES_SIZE];
+  struct mosquitto *mosquitto;
 } gpio2mosquitto_t;
 
-void gpio2mosquitto_init(gpio2mosquitto_t* data);
-void gpio2mosquitto_cleanup(gpio2mosquitto_t* data);
+void gpio2mosquitto_init(gpio2mosquitto_t *data);
+void gpio2mosquitto_cleanup(gpio2mosquitto_t *data);
 
-void gpio2mosquitto_set_by_args(gpio2mosquitto_t* data, int argc, char *argv[]);
-void gpio2mosquitto_start(gpio2mosquitto_t* data);
+void gpio2mosquitto_set_by_args(gpio2mosquitto_t *data, int argc, char *argv[]);
+void gpio2mosquitto_start(gpio2mosquitto_t *data);
