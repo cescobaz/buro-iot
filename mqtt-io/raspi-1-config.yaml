@@ -1,0 +1,26 @@
+mqtt:
+  host: '{{ mqtt_host }}'
+  port: {{ mqtt_port }}
+  user: '{{ mqtt_user }}'
+  password: '{{ mqtt_password }}'
+  topic_prefix: '{{ ansible_host }}'
+  tls:
+    enabled: true
+  ha_discovery:
+    enabled: yes
+
+gpio_modules:
+  # Use the Raspberry Pi built-in GPIO
+  - name: rpi
+    module: raspberrypi
+
+digital_inputs:
+  - name: motion_sensor
+    module: rpi
+    pin: 27
+
+digital_outputs:
+  - name: living_lamp
+    module: rpi
+    pin: 17
+    inverted: true

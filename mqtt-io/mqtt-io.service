@@ -1,0 +1,14 @@
+[Unit]
+Description=mqtt-io
+After=network.target
+
+[Service]
+Type=simple
+Restart=always
+RestartSec=3
+User=root
+WorkingDirectory=/home/pi
+ExecStart=python3 -m mqtt_io /etc/mqtt-io/config.yaml
+
+[Install]
+WantedBy=multi-user.target

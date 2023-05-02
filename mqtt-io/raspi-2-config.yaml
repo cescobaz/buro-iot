@@ -1,0 +1,51 @@
+mqtt:
+  host: '{{ mqtt_host }}'
+  port: {{ mqtt_port }}
+  user: '{{ mqtt_user }}'
+  password: '{{ mqtt_password }}'
+  topic_prefix: '{{ ansible_host }}'
+  tls:
+    enabled: true
+  ha_discovery:
+    enabled: yes
+
+gpio_modules:
+  # Use the Raspberry Pi built-in GPIO
+  - name: rpi
+    module: raspberrypi
+
+digital_inputs:
+  - name: top_button
+    module: rpi
+    pin: 17
+  - name: bottom_button
+    module: rpi
+    pin: 27
+
+digital_outputs:
+  - name: red_led
+    module: rpi
+    pin: 10
+  - name: green_led
+    module: rpi
+    pin: 9
+  - name: kitchen_lamp
+    module: rpi
+    pin: 18
+    inverted: true
+
+sensor_modules:
+  - name: dht_sensor
+    module: dht22
+    type: dht11
+    pin: 22
+
+sensor_inputs:
+  - name: dht_humidity
+    module: dht_sensor
+    type: humidity
+    interval: 4
+  - name: dht_temperature
+    module: dht_sensor
+    type: temperature
+    interval: 6
