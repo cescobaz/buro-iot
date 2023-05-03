@@ -3,6 +3,7 @@ mqtt:
   port: {{ mqtt_port }}
   user: '{{ mqtt_user }}'
   password: '{{ mqtt_password }}'
+  client_id: '{{ ansible_host }}-ttushxbz'
   topic_prefix: '{{ ansible_host }}'
   tls:
     enabled: true
