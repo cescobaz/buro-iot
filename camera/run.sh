@@ -11,7 +11,7 @@ $dir/mqtt-camera-state.sh
 
 update_state() {
   state=$1
-  mosquitto_pub --id $mqtt_client_id --url "$mqtt_url/$state_topic" -m "$state"
+  mosquitto_pub --retain --id $mqtt_client_id --url "$mqtt_url/$state_topic" -m "$state"
 }
 
 $dir/stop-stream.sh

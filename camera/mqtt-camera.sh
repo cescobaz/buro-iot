@@ -7,4 +7,4 @@ topic="$prefix/camera/$object_id/image"
 
 payload="{\"topic\": \"$topic\",\"unique_id\":\"$unique_id\"}"
 
-mosquitto_pub --id $mqtt_client_id --url "$mqtt_url/$topic_config" -m "$payload"
+mosquitto_pub --retain --id $mqtt_client_id --url "$mqtt_url/$topic_config" -m "$payload"

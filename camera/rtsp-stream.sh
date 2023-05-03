@@ -9,4 +9,4 @@ stream &
 
 echo "INFO:[$(date)] streaming started"
 
-mosquitto_pub --id $mqtt_client_id --url "$mqtt_url/$state_topic" -m 'streaming'
+mosquitto_pub --retain --id $mqtt_client_id --url "$mqtt_url/$state_topic" -m 'streaming'
