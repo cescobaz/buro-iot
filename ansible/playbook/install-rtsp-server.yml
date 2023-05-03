@@ -1,0 +1,31 @@
+#!/bin/ansible-playbook
+
+- hosts:
+    - arch-macbook
+  become: yes
+  tasks:
+    - name: Create rtsp-server opt directory
+      ansible.builtin.file:
+        path: /opt/mediamtx
+        state: directory
+        mode: '0755'
+    - name: Installing mediamtx
+      ansible.builtin.unarchive:
+        remote_src: true
+        src: "https://github.com/aler9/mediamtx/releases/download/v0.22.2/mediamtx_v0.22.2_linux_{{ cpu_arc }}.tar.gz"
+        dest: /opt/mediamtx
+    - name: Installing mediamtx config
+      ansible.builtin.copy:
+        src: '../../rtsp-server/mediamtx.yml'
+        dest: /etc/mediamtx.yml
+    - name: Install rtsp-server systemd unit file
+      ansible.builtin.template:
+        src: "../../rtsp-server/rtsp-server.service"
+        dest: /etc/systemd/system/rtsp-server.service
+    - name: Start rtsp-server service
+      ansible.builtin.systemd:
+        state: restarted
+        name: rtsp-server
+        daemon_reload: true
+        enabled: true
+
