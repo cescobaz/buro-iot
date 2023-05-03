@@ -7,5 +7,3 @@ ps aux |
   xargs kill
 
 echo "INFO:[$(date)] streaming stopped"
-
-mosquitto_pub --id $mqtt_client_id --url "$mqtt_url/$state_topic" -m 'ready'

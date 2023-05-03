@@ -6,7 +6,7 @@ After=network.target
 User=root
 Type=simple
 Restart=always
-RestartSec=60
+RestartSec=20
 Environment="prefix={{ ansible_host }}"
 Environment="object_id=living-camera-0"
 Environment="mqtt_client_id={{ mqtt_client_id }}"
