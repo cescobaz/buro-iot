@@ -1,0 +1,50 @@
+#!/bin/ansible-playbook
+
+- hosts:
+    - raspi-1
+  vars:
+    mqtt_host: burelli.xyz
+    mqtt_port: 8883
+    mqtt_client_id: '8FE2EE72-8FD1-4D6F-B102-5AFC0FFFFB56'
+  become: yes
+  tasks:
+    - name: Install packages
+      apt:
+        update_cache: yes
+        autoremove: yes
+        state: present
+        pkg:
+          - mosquitto-clients
+    - name: Create mqtt-camera opt directory
+      ansible.builtin.file:
+        path: /opt/mqtt-camera
+        state: directory
+        mode: '0755'
+    - name: Install mqtt-camera executables
+      ansible.builtin.copy:
+        src: "../../camera/{{ item }}"
+        dest: /opt/mqtt-camera/
+        owner: pi
+        group: pi
+        mode: '0744'
+      with_items:
+        - mqtt-camera.sh
+        - mqtt-camera-state.sh
+        - mqtt-camera-state-env.sh
+        - mqtt-upload-image.sh
+        - rtsp-stream.sh
+        - stop-stream.sh
+        - run.sh
+    - name: Install mqtt-camera systemd unit file
+      ansible.builtin.template:
+        src: "../../camera/mqtt-camera.service"
+        dest: /etc/systemd/system/mqtt-camera.service
+        owner: pi
+        group: pi
+        mode: '0644'
+    - name: Start mqtt-camera service
+      ansible.builtin.systemd:
+        state: restarted
+        name: mqtt-camera
+        daemon_reload: true
+        enabled: true

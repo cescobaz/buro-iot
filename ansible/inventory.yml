@@ -1,7 +1,23 @@
+gateway:
+  vars:
+    ansible_connection: ssh
+  hosts:
+    arch-macbook:
+      cpu_arc: amd64
+      ansible_user: buro
+      ansible_become_password: !vault |
+                $ANSIBLE_VAULT;1.1;AES256
+                31313237333565363230376334646538396632663766633165646239393737653537313134363664
+                3933633035616432333631396133383930303937643061620a666137336163643662633466363966
+                66653861636430613830353332316430346162376333323132353036613336373438336262623563
+                3333323234623133330a396239623466303931633961303437306537303536323130613930613533
+                6332
+
 raspberry:
   vars:
     ansible_connection: ssh
     ansible_user: pi
+    cpu_arc: armv6
   hosts:
     raspi-1:
       mqtt_user: 'buro.raspi-1'
