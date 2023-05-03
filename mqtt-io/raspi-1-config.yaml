@@ -9,6 +9,9 @@ mqtt:
     enabled: true
   ha_discovery:
     enabled: yes
+  status_payload_running: available
+  status_payload_stopped: unavailable
+  status_payload_dead: unavailable
 
 gpio_modules:
   # Use the Raspberry Pi built-in GPIO
