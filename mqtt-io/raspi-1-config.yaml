@@ -3,7 +3,7 @@ mqtt:
   port: {{ mqtt_port }}
   user: '{{ mqtt_user }}'
   password: '{{ mqtt_password }}'
-  client_id: '{{ ansible_host }}-akdfjwqq'
+  client_id: '{{ mqtt_client_id }}'
   topic_prefix: '{{ ansible_host }}'
   tls:
     enabled: true
@@ -22,9 +22,13 @@ digital_inputs:
   - name: motion_sensor
     module: rpi
     pin: 27
+    ha_discovery:
+      name: 'Motion sensor'
 
 digital_outputs:
   - name: living_lamp
     module: rpi
     pin: 17
     inverted: true
+    ha_discovery:
+      name: "Living light"

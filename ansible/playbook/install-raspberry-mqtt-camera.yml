@@ -6,7 +6,6 @@
   vars:
     mqtt_host: burelli.xyz
     mqtt_port: 8883
-    mqtt_client_id: '8FE2EE72-8FD1-4D6F-B102-5AFC0FFFFB56'
   become: yes
   tasks:
     - name: Install packages

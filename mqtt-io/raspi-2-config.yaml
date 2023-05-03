@@ -3,7 +3,7 @@ mqtt:
   port: {{ mqtt_port }}
   user: '{{ mqtt_user }}'
   password: '{{ mqtt_password }}'
-  client_id: '{{ ansible_host }}-ttushxbz'
+  client_id: '{{ mqtt_client_id }}'
   topic_prefix: '{{ ansible_host }}'
   tls:
     enabled: true
@@ -22,21 +22,31 @@ digital_inputs:
   - name: top_button
     module: rpi
     pin: 17
+    ha_discovery:
+      name: "Top button"
   - name: bottom_button
     module: rpi
     pin: 27
+    ha_discovery:
+      name: "Bottom button"
 
 digital_outputs:
   - name: red_led
     module: rpi
     pin: 10
+    ha_discovery:
+      name: "RED"
   - name: green_led
     module: rpi
     pin: 9
+    ha_discovery:
+      name: "GREEN"
   - name: kitchen_lamp
     module: rpi
     pin: 18
     inverted: true
+    ha_discovery:
+      name: "Kitchen light"
 
 sensor_modules:
   - name: dht_sensor
@@ -49,7 +59,11 @@ sensor_inputs:
     module: dht_sensor
     type: humidity
     interval: 4
+    ha_discovery:
+      name: "Humidity"
   - name: dht_temperature
     module: dht_sensor
     type: temperature
     interval: 6
+    ha_discovery:
+      name: "Temperature"

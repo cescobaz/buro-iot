@@ -38,4 +38,4 @@
         group: pi
         mode: '0644'
     - name: Start mqtt-io service
-      systemd: state=restarted name=mqtt-io daemon_reload=yes
+      systemd: enabled=yes state=restarted name=mqtt-io daemon_reload=yes

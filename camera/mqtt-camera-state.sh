@@ -2,7 +2,7 @@
 
 set -e
 
-payload="{\"command_topic\": \"$command_topic\",\"state_topic\":\"$state_topic\",\"unique_id\":\"$select_object_id\",\"name\":\"Camera state\",\"options\":[\"ready\", \"snapshot\", \"streaming\"]}"
+payload="{\"command_topic\": \"$command_topic\",\"state_topic\":\"$state_topic\",\"object_id\":\"$select_object_id\",\"unique_id\":\"$select_object_id\",\"name\":\"$entity_name state\",\"options\":[\"ready\", \"snapshot\", \"streaming\"]}"
 
 mosquitto_pub --retain --id $mqtt_client_id --url "$mqtt_url/$topic_config" -m "$payload"
 

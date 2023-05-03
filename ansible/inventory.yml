@@ -21,6 +21,7 @@ raspberry:
   hosts:
     raspi-1:
       iot_area: 'living'
+      mqtt_client_id: '8FE2EE72-8FD1-4D6F-B102-5AFC0FFFFB56'
       mqtt_user: 'buro.raspi-1'
       mqtt_password: !vault |
                 $ANSIBLE_VAULT;1.1;AES256
@@ -33,6 +34,7 @@ raspberry:
                 613739336664343938383238323939353434
     raspi-2:
       iot_area: 'kitchen'
+      mqtt_client_id: '76EE3F37-3258-431A-BDEA-6856625CA9F0'
       mqtt_user: 'buro.raspi-2'
       mqtt_password: !vault |
                 $ANSIBLE_VAULT;1.1;AES256
@@ -46,6 +48,7 @@ raspberry:
                 64343362663763623939
     raspi-3:
       iot_area: 'bedroom'
+      mqtt_client_id: '652DBE1A-4112-4BA6-B0EE-53C3D351BBD7'
       mqtt_user: 'buro.raspi-3'
       mqtt_password: !vault |
                 $ANSIBLE_VAULT;1.1;AES256
