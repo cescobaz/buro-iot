@@ -22,6 +22,7 @@ digital_inputs:
   - name: motion_sensor
     module: rpi
     pin: 27
+    retain: true
     ha_discovery:
       name: 'Motion sensor'
 
@@ -30,5 +31,6 @@ digital_outputs:
     module: rpi
     pin: 17
     inverted: true
+    retain: true
     ha_discovery:
       name: "Living light"

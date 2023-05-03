@@ -34,17 +34,20 @@ digital_outputs:
   - name: red_led
     module: rpi
     pin: 10
+    retain: true
     ha_discovery:
       name: "RED"
   - name: green_led
     module: rpi
     pin: 9
+    retain: true
     ha_discovery:
       name: "GREEN"
   - name: kitchen_lamp
     module: rpi
     pin: 18
     inverted: true
+    retain: true
     ha_discovery:
       name: "Kitchen light"
 
