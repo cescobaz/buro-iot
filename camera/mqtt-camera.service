@@ -10,7 +10,7 @@ RestartSec=20
 Environment="prefix={{ ansible_host }}"
 Environment="entity_name={{ iot_area }} camera"
 Environment="object_id={{ iot_area }}-camera-mqtt"
-Environment="mqtt_client_id={{ mqtt_client_id }}"
+Environment="mqtt_client_id=camera-{{ mqtt_client_id }}"
 Environment="mqtt_url=mqtts://{{ mqtt_user }}:{{ mqtt_password }}@{{ mqtt_host }}:{{ mqtt_port}}"
 ExecStart=/opt/mqtt-camera/run.sh
 
