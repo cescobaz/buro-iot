@@ -3,9 +3,6 @@
 - hosts:
     - raspi-1
     - raspi-2
-  vars:
-    mqtt_host: burelli.xyz
-    mqtt_port: 8883
   become: yes
   tasks:
     - name: Install packages
