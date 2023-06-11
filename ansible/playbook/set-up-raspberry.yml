@@ -10,19 +10,8 @@
         state: present
         pkg:
           - dnsutils
-          - pigpio
-          - pigpiod
           - vim
           - git
+          - pigpio
+          - pigpiod
           - mosquitto-clients
-          - libmosquitto1
-          - libmosquitto-dev # for building C program
-          - libpigpio1
-          - libpigpio-dev # for building C program
-          - libjson-c-dev
-    - name: Checkout webthings-home
-      ansible.builtin.git:
-        repo: 'https://github.com/cescobaz/buro-iot.git'
-        dest: /opt/buro-iot
-        version: latest
-
