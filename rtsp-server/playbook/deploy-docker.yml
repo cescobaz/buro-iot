@@ -1,0 +1,65 @@
+#!/bin/ansible-playbook
+
+- hosts:
+    - gateway
+  become: true
+  vars:
+    service_name: rtsp-server
+    image_name: 'docker.io/bluenviron/mediamtx:0.23.5'
+    container_name: '{{ service_name }}'
+    network_name: '{{ service_name }}'
+    path: '/home/buro/{{ service_name }}'
+    data_dir: '{{ path }}/data'
+    container_data_dir: '/var/mediamtx'
+    config_dir: '{{ path }}/etc'
+    container_config_dir: '/etc'
+  tasks:
+    - name: Install packages
+      ansible.builtin.package:
+        state: present
+        name:
+          - python-requests
+    - name: 'Create {{ service_name }} data directory'
+      ansible.builtin.file:
+        path: '{{ data_dir }}'
+        state: directory
+    - name: 'Create {{ service_name }} config directory'
+      ansible.builtin.file:
+        path: '{{ config_dir }}'
+        state: directory
+    - name: 'Copy {{ service_name }} config files'
+      ansible.builtin.template:
+        src: '../etc/{{ item }}'
+        dest: '{{ config_dir }}/{{ item }}'
+      loop:
+        - 'mediamtx.yml'
+    - name: 'Create {{ network_name }} network'
+      community.docker.docker_network:
+        name: '{{ network_name }}'
+    - name: 'Run {{ service_name }}'
+      vars:
+        labels_dic: '{{ container_labels | items2dict }}'
+      containers.podman.podman_container:
+        auto_remove: false
+        cleanup: false
+        detach: true
+        interactive: false
+        restart_policy: "always"
+        image: '{{ image_name }}'
+        name: '{{ container_name }}'
+        hostname: '{{ service_name }}.home.burelli.xyz'
+        networks:
+          - name: '{{ network_name }}'
+        env:
+          MTX_PROTOCOLS: tcp
+          REDMINE_SECRET_KEY_BASE: '{{ redmine_secret_key_base }}'
+        publish:
+          - 8554:8554
+          - 1935:1935
+          - 8888:8888
+          - 8889:8889
+        volumes:
+          - '{{ data_dir }}:{{ container_data_dir }}'
+          - '{{ config_dir }}/mediamtx.yml:{{ container_config_dir }}/mediamtx.yml'
+        labels: '{{ labels_dic }}'
+
