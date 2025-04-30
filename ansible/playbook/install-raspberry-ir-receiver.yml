@@ -13,6 +13,7 @@
           - ir-keytable
           - lirc
           - mosquitto-clients
+# TODO: set up /boot/config.txt ir-receiver gpio 11
     - name: Create lirc etc directory
       ansible.builtin.file:
         path: /etc/lirc
