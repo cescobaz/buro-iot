@@ -1,0 +1,45 @@
+#!/bin/ansible-playbook
+
+- hosts:
+    - raspi-2
+  become: yes
+  tasks:
+    - name: Install packages
+      apt:
+        update_cache: yes
+        autoremove: yes
+        state: present
+        pkg:
+          - ir-keytable
+          - lirc
+          - mosquitto-clients
+    - name: Create lirc etc directory
+      ansible.builtin.file:
+        path: /etc/lirc
+        state: directory
+        mode: '0755'
+    - name: Install lirc apple remote config
+      ansible.builtin.template:
+        src: "../../ir-receiver/A1156.lircd.conf"
+        dest: /etc/lirc/lircd.conf.d/A1156.lircd.conf
+        owner: pi
+        group: pi
+        mode: '0644'
+    - name: Start lircd service
+      systemd: enabled=yes state=restarted name=lircd daemon_reload=yes
+    - name: Install lircd to mosquitto script
+      ansible.builtin.template:
+        src: "../../ir-receiver/lircd-to-mqtt.sh"
+        dest: /usr/local/bin/lircd-to-mqtt
+        owner: pi
+        group: pi
+        mode: '0650'
+    - name: Install lircd-to-mqtt systemd unit file
+      ansible.builtin.copy:
+        src: ../../ir-receiver/lircd-to-mqtt.service
+        dest: /etc/systemd/system/lircd-to-mqtt.service
+        owner: pi
+        group: pi
+        mode: '0644'
+    - name: Start lircd-to-mqtt service
+      systemd: enabled=yes state=restarted name=lircd-to-mqtt daemon_reload=yes

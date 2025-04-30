@@ -1,5 +1,23 @@
 # buro-iot
 
+## Hardware
+
+# IR receiver
+
+GPIO11 (pin 23)
+
+Open /boot/config.txt and edit line dtoverlay=gpio-ir,gpio_pin=11
+then
+
+```bash
+sudo reboot now
+sudo apt install ir-keytable
+sudo ir-keytable -c -p all -t
+```
+
+IR database
+https://lirc-remotes.sourceforge.net/remotes-table.html
+
 # Setup Raspberry
 
 ## Setup SD boot partition
