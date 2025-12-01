@@ -1,3 +1,7 @@
+all:
+  vars:
+    env: prod
+
 gateway:
   vars:
     ansible_connection: ssh
@@ -13,6 +17,9 @@ gateway:
                 3333323234623133330a396239623466303931633961303437306537303536323130613930613533
                 6332
     ocean:
+      ansible_host: 'burelli.xyz'
+      ansible_user: root
+    homeassistant:
       ansible_host: 'burelli.xyz'
       ansible_user: root
 
@@ -78,6 +85,10 @@ mosquitto:
       65386163383761636363343831663833393033356631343565666233303964346262616563613665
       33616130353033303336333437666234376163326462646463626663616661383161653238626138
       39653861376462313366366633623538366636376262616135333035666330333266
+  hosts:
+    mosquitto:
+      ansible_host: 'burelli.xyz'
+      ansible_user: root
 
 raspberry:
   vars:

@@ -1,0 +1,46 @@
+#!/bin/ansible-playbook
+
+- hosts:
+    - mosquitto
+  become: yes
+  vars:
+    path: '/root/{{ env }}/mosquitto'
+  tasks:
+    - name: Create mosquitto config directory
+      ansible.builtin.file:
+        path: "{{ path }}"
+        state: directory
+
+    - name: Copy mosquitto configuration file
+      ansible.builtin.template:
+        src: './mosquitto.conf'
+        dest: "{{ path }}/mosquitto.conf"
+
+    - name: Template mosquitto passfile
+      ansible.builtin.template:
+        src: './passfile'
+        dest: "{{ path }}/passfile"
+
+    - name: Run mosquitto docker container
+      community.docker.docker_container:
+        init: true # use tini, why use tini https://github.com/krallin/tini/issues/8
+        image_name_mismatch: 'recreate'
+        image: docker.io/eclipse-mosquitto:2.0
+        name: mqtt
+        recreate: true
+        state: started
+        restart_policy: always
+        networks:
+          - name: 'main'
+        ports:
+          - "1883:1883"
+        volumes:
+          - "{{ path }}/mosquitto.conf:/mosquitto/config/mosquitto.conf"
+          - "{{ path }}/passfile:/mosquitto/config/passfile"
+        labels:
+          traefik.enable: "true"
+          traefik.tcp.services.mqtt.loadbalancer.server.port: "1883"
+          traefik.tcp.routers.tcpr_mqtt.tls: 'true'
+          traefik.tcp.routers.tcpr_mqtt.entrypoints: "mqtt"
+          traefik.tcp.routers.tcpr_mqtt.rule: 'HostSNI(`burelli.xyz`)'
+          traefik.tcp.routers.tcpr_mqtt.service: "mqtt"

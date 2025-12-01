@@ -1,1 +1,5 @@
-buro.raspi-1:$6$S7WzZ9xoHEfE5uK9$7Z4MqQG9X6FZGCU9DS63PUFNjKveUAiFAmlxC8lPSL6xWNHzhzFGBxVYRS5YG/4DEXOmepUOTyynrZse3XdWSQ==
+buro.raspi-1:{{ raspi_1_mqtt_password }}
+buro.raspi-2:{{ raspi_2_mqtt_password }}
+buro.raspi-3:{{ raspi_3_mqtt_password }}
+buro.homeassistant:{{ homeassistant_mqtt_password }}
+buro.nodered:{{ nodered_mqtt_password }}

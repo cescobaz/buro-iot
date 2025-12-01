@@ -1,0 +1,44 @@
+#!/bin/ansible-playbook
+
+- hosts:
+    - homeassistant
+  become: yes
+  vars:
+    path: '/root/{{ env }}/homeassistant'
+  tasks:
+    - name: Create homeassistant config directory
+      ansible.builtin.file:
+        path: "{{ path }}/config"
+        state: directory
+
+    - name: Template config files
+      ansible.builtin.template:
+        src: './config/{{ item }}'
+        dest: "{{ path }}/config/{{ item }}"
+      loop:
+        - automations.yaml
+        - configuration.yaml
+        - scenes.yaml
+        - scripts.yaml
+        - secrets.yaml
+
+    - name: Run homeassistant docker container
+      community.docker.docker_container:
+        image_name_mismatch: 'recreate'
+        image: ghcr.io/home-assistant/home-assistant:stable
+        name: home-assistant
+        recreate: true
+        state: started
+        restart_policy: always
+        networks:
+          - name: 'main'
+        volumes:
+          - "{{ path }}/config:/config"
+        env:
+          TZ: "Europe/Rome"
+        labels:
+          traefik.enable: "true"
+          traefik.http.routers.homeassistant.entryPoints: "websecure"
+          traefik.http.routers.homeassistant.tls.certResolver: "myresolver"
+          traefik.http.routers.homeassistant.rule: 'Host(`iot.burelli.xyz`)'
+          traefik.http.services.homeassistant.loadbalancer.server.port: '8123'
