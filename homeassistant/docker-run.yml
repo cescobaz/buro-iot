@@ -11,21 +11,10 @@
         path: "{{ path }}/config"
         state: directory
 
-    - name: Template config files
-      ansible.builtin.template:
-        src: './config/{{ item }}'
-        dest: "{{ path }}/config/{{ item }}"
-      loop:
-        - automations.yaml
-        - configuration.yaml
-        - scenes.yaml
-        - scripts.yaml
-        - secrets.yaml
-
     - name: Run homeassistant docker container
       community.docker.docker_container:
         image_name_mismatch: 'recreate'
-        image: ghcr.io/home-assistant/home-assistant:stable
+        image: ghcr.io/home-assistant/home-assistant:2023.4.6
         name: home-assistant
         recreate: true
         state: started
