@@ -2,7 +2,6 @@
 
 - hosts:
     - raspi-1
-    - raspi-3
   become: yes
   tasks:
     - name: Install packages
