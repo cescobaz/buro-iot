@@ -2,7 +2,7 @@
 
 stream() {
   libcamera-vid -n -t 0 --flush 1 -o - |
-    ffmpeg -i - -vcodec copy -an -f rtsp -rtsp_transport tcp rtsp://arch-macbook:8554/$object_id
+    ffmpeg -i - -vcodec copy -an -f rtsp -rtsp_transport tcp rtsp://{{ rtsp_server_host_public }}:{{ rtsp_server_port }}/$object_id
 }
 
 stream &

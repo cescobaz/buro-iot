@@ -131,6 +131,17 @@ nodered:
       ansible_host: 'burelli.xyz'
       ansible_user: root
 
+rtsp:
+  vars:
+    rtsp_server_host_docker: 'rtsp-server'
+    rtsp_server_host_public: 'rtsp.burelli.xyz'
+    rtsp_server_port: "8854"
+  hosts:
+    rtsp-server:
+      ansible_host: 'burelli.xyz'
+      ansible_user: root
+
+
 raspberry:
   vars:
     ansible_connection: ssh

@@ -1,65 +1,50 @@
 #!/bin/ansible-playbook
 
 - hosts:
-    - gateway
+    - rtsp-server
   become: true
   vars:
-    service_name: rtsp-server
-    image_name: 'docker.io/bluenviron/mediamtx:0.23.5'
-    container_name: '{{ service_name }}'
-    network_name: '{{ service_name }}'
-    path: '/home/buro/{{ service_name }}'
-    data_dir: '{{ path }}/data'
-    container_data_dir: '/var/mediamtx'
-    config_dir: '{{ path }}/etc'
-    container_config_dir: '/etc'
+    path: '/root/{{ path_prefix }}/rtspserver'
   tasks:
-    - name: Install packages
-      ansible.builtin.package:
-        state: present
-        name:
-          - python-requests
-    - name: 'Create {{ service_name }} data directory'
+    - name: Create rtsp server data directory
       ansible.builtin.file:
-        path: '{{ data_dir }}'
+        path: "{{ path }}/data"
         state: directory
-    - name: 'Create {{ service_name }} config directory'
+
+    - name: Create rtsp server confif directory
       ansible.builtin.file:
-        path: '{{ config_dir }}'
+        path: "{{ path }}/config"
         state: directory
-    - name: 'Copy {{ service_name }} config files'
+
+    - name: 'Install config'
       ansible.builtin.template:
-        src: '../etc/{{ item }}'
-        dest: '{{ config_dir }}/{{ item }}'
-      loop:
-        - 'mediamtx.yml'
-    - name: 'Create {{ network_name }} network'
-      community.docker.docker_network:
-        name: '{{ network_name }}'
-    - name: 'Run {{ service_name }}'
-      vars:
-        labels_dic: '{{ container_labels | items2dict }}'
-      containers.podman.podman_container:
-        auto_remove: false
-        cleanup: false
-        detach: true
-        interactive: false
-        restart_policy: "always"
-        image: '{{ image_name }}'
-        name: '{{ container_name }}'
-        hostname: '{{ service_name }}.home.burelli.xyz'
-        networks:
-          - name: '{{ network_name }}'
+        src: "../etc/mediamtx.yml"
+        dest: "{{ path }}/config/mediamtx.yml"
+
+    - name: Run rtspserver docker container
+      community.docker.docker_container:
+        init: true # use tini, why use tini https://github.com/krallin/tini/issues/8
+        image_name_mismatch: 'recreate'
+        image: 'docker.io/bluenviron/mediamtx:0.23.5'
+        name: '{{ rtsp_server_host_docker }}'
+        recreate: true
+        state: started
+        restart_policy: always
         env:
           MTX_PROTOCOLS: tcp
-          REDMINE_SECRET_KEY_BASE: '{{ redmine_secret_key_base }}'
+        networks:
+          - name: 'main'
         publish:
           - 8554:8554
           - 1935:1935
           - 8888:8888
           - 8889:8889
         volumes:
-          - '{{ data_dir }}:{{ container_data_dir }}'
-          - '{{ config_dir }}/mediamtx.yml:{{ container_config_dir }}/mediamtx.yml'
-        labels: '{{ labels_dic }}'
-
+          - "{{ path }}/data:/var/mediamtx"
+          - '{{ path }}/config/mediamtx.yml:/etc/mediamtx.yml'
+        labels:
+          traefik.enable: "true"
+          traefik.http.routers.rtspserver.entryPoints: "websecure"
+          traefik.http.routers.rtspserver.tls.certResolver: "myresolver"
+          traefik.http.routers.rtspserver.rule: 'Host(`{{ rtsp_server_host_public }}`)'
+          traefik.http.services.rtspserver.loadbalancer.server.port: '{{ rtsp_server_port }}'
