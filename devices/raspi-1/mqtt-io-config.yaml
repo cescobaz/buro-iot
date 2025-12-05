@@ -4,9 +4,9 @@ mqtt:
   user: '{{ mqtt_user }}'
   password: '{{ mqtt_password }}'
   client_id: '{{ mqtt_client_id }}'
-  topic_prefix: '{{ ansible_host }}'
+  topic_prefix: '{{ name }}'
   tls:
-    enabled: {{ mqtt_tls_enabled }}
+    enabled: {{ 'yes' if mqtt_tls_enabled else 'no' }}
   ha_discovery:
     enabled: yes
   status_payload_running: available

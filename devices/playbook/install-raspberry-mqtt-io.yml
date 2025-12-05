@@ -22,14 +22,14 @@
         mode: '0755'
     - name: Install mqtt-io config.yaml
       ansible.builtin.template:
-        src: "../../mqtt-io/{{ansible_host}}-config.yaml"
+        src: "../{{name}}/mqtt-io-config.yaml"
         dest: /etc/mqtt-io/config.yaml
         owner: pi
         group: pi
         mode: '0644'
     - name: Install mqtt-io systemd unit file
       ansible.builtin.copy:
-        src: ../../mqtt-io/mqtt-io.service
+        src: "../mqtt-io/mqtt-io.service"
         dest: /etc/systemd/system/mqtt-io.service
         owner: pi
         group: pi
