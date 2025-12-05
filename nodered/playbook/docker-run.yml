@@ -1,0 +1,41 @@
+
+#!/bin/ansible-playbook
+
+- hosts:
+    - nodered
+  become: yes
+  vars:
+    path: '/root/{{ path_prefix }}/nodered'
+  tasks:
+    - name: Create nodered data directory
+      ansible.builtin.file:
+        path: "{{ path }}/data"
+        state: directory
+
+    - name: 'Install settings.js'
+      ansible.builtin.template:
+        src: "../data/settings.js"
+        dest: "{{ path }}/data/settings.js"
+
+    - name: Run nodered docker container
+      community.docker.docker_container:
+        init: true # use tini, why use tini https://github.com/krallin/tini/issues/8
+        image_name_mismatch: 'recreate'
+        image: docker.io/nodered/node-red:3.0.2
+        name: '{{ nodered_host_docker }}'
+        recreate: true
+        state: started
+        restart_policy: always
+        env:
+          TZ: "Europe/Rome"
+          PORT: "{{ nodered_port | string }}"
+        networks:
+          - name: 'main'
+        volumes:
+          - "{{ path }}/data:/data"
+        labels:
+          traefik.enable: "true"
+          traefik.http.routers.nodered.entryPoints: "websecure"
+          traefik.http.routers.nodered.tls.certResolver: "myresolver"
+          traefik.http.routers.nodered.rule: 'Host(`{{ nodered_host_public }}`)'
+          traefik.http.services.nodered.loadbalancer.server.port: '{{ nodered_port }}'
