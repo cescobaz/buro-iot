@@ -20,7 +20,7 @@
       community.docker.docker_container:
         init: true # use tini, why use tini https://github.com/krallin/tini/issues/8
         image_name_mismatch: 'recreate'
-        image: docker.io/nodered/node-red:3.0.2
+        image: docker.io/nodered/node-red:4.0.4
         name: '{{ nodered_host_docker }}'
         recreate: true
         state: started

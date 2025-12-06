@@ -152,7 +152,7 @@ raspberry:
     mqtt_tls_enabled: true
   hosts:
     raspi-1:
-      name: 'raspi-1'
+      device_name: 'raspi-1'
       ansible_host: 'raspi-1.local'
       iot_area: 'living'
       mqtt_client_id: '8FE2EE72-8FD1-4D6F-B102-5AFC0FFFFB56'
@@ -167,7 +167,7 @@ raspberry:
                 34636535356538666233313039353965313231646431656236343931363036616364343333653133
                 613739336664343938383238323939353434
     raspi-2:
-      name: 'raspi-2'
+      device_name: 'raspi-2'
       ansible_host: 'raspi-2.local'
       iot_area: 'kitchen'
       mqtt_client_id: '76EE3F37-3258-431A-BDEA-6856625CA9F0'
@@ -183,7 +183,7 @@ raspberry:
                 31326336633738666165623936643966633134653636393763356563663162636231376461623336
                 64343362663763623939
     raspi-3:
-      name: 'raspi-3'
+      device_name: 'raspi-3'
       ansible_host: 'raspi-3.local'
       iot_area: 'bedroom'
       mqtt_client_id: '652DBE1A-4112-4BA6-B0EE-53C3D351BBD7'

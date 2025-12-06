@@ -4,7 +4,7 @@ mqtt:
   user: '{{ mqtt_user }}'
   password: '{{ mqtt_password }}'
   client_id: '{{ mqtt_client_id }}'
-  topic_prefix: '{{ name }}'
+  topic_prefix: '{{ device_name }}'
   tls:
     enabled: {{ 'yes' if mqtt_tls_enabled else 'no' }}
   ha_discovery:
