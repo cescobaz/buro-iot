@@ -47,6 +47,19 @@ pi:$6$HdPBlG7bDoFzk/S9$XKG974gMGuEmGzzRPBXzbMWENWmEb1la1Q.8gkXRR.4fIiFeONKrvUmE4
 
 ## Add user to mosquitto
 
+In the remote machine use
+```
+mosquitto_passwd
+```
+
+```
+scp root@burelli.xyz:prod/mosquitto/passfile ./mosquitto/
+```
+
+```
+ansible-vault encrypt --vault-password-file .vault-password mosquitto/passfile
+```
+
 Update the passfile then trigger mosquitto by:
 
 ```bash
