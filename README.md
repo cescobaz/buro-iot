@@ -1,5 +1,26 @@
 # buro-iot
 
+## Ansible
+
+All playbooks are run **from the repository root**: each service keeps its own
+playbook (`mosquitto/docker-run.yml`, `nodered/playbook/docker-run.yml`,
+`devices/playbook/*.yml`, ...) and reaches sibling directories with relative
+`src:` paths, so `./ansible.cfg` and `./inventory.yml` are the single source of
+truth. There is no per-directory ansible config.
+
+```bash
+ansible-playbook --vault-password-file .vault-password mosquitto/docker-run.yml
+ansible-playbook --vault-password-file .vault-password devices/playbook/install-raspberry-mqtt-io.yml --limit raspi-2
+```
+
+### Create encrypted var
+
+```bash
+ansible-vault encrypt_string --vault-password-file .vault-password --stdin-name 'the_secret'
+```
+
+You will get the encrypted var to use in template and playbook.
+
 ## Hardware
 
 # IR receiver

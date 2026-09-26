@@ -59,3 +59,12 @@ tags
 [._]*.un~
 
 # End of https://www.toptal.com/developers/gitignore/api/macos,vim,ansible
+
+### buro-iot ###
+# Ansible vault password, never commit
+.vault-password
+# ansible.cfg log_path
+/logs
+# Snapshots pulled down by download-media.sh / rsync-media.sh
+/media/
+/data/
