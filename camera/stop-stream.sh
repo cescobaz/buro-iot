@@ -4,6 +4,6 @@ ps aux |
   grep libcamera-vid |
   grep -v grep |
   awk '{ print $2}' |
-  xargs kill
+  xargs -r kill
 
 echo "INFO:[$(date)] streaming stopped"
