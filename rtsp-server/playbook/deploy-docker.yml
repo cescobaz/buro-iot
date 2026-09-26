@@ -25,23 +25,21 @@
       community.docker.docker_container:
         init: true # use tini, why use tini https://github.com/krallin/tini/issues/8
         image_name_mismatch: 'recreate'
-        image: 'docker.io/bluenviron/mediamtx:0.23.5'
+        image: 'docker.io/bluenviron/mediamtx:1.21.1'
         name: '{{ rtsp_server_host_docker }}'
         recreate: true
         state: started
         restart_policy: always
-        env:
-          MTX_PROTOCOLS: tcp
         networks:
           - name: 'main'
-        publish:
+        published_ports:
           - 8554:8554
           - 1935:1935
           - 8888:8888
           - 8889:8889
         volumes:
           - "{{ path }}/data:/var/mediamtx"
-          - '{{ path }}/config/mediamtx.yml:/etc/mediamtx.yml'
+          - '{{ path }}/config/mediamtx.yml:/mediamtx.yml'
         labels:
           traefik.enable: "true"
           traefik.http.routers.rtspserver.entryPoints: "websecure"
