@@ -7,7 +7,7 @@ User=root
 Type=simple
 Restart=always
 RestartSec=20
-Environment="prefix={{ ansible_host }}"
+Environment="prefix={{ device_name }}"
 Environment="entity_name={{ iot_area }} camera"
 Environment="object_id={{ iot_area }}-camera-mqtt"
 Environment="mqtt_client_id=camera-{{ mqtt_client_id }}"
