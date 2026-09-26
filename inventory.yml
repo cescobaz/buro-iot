@@ -99,6 +99,8 @@ raspberry:
     mqtt_host: 'mqtt.burelli.xyz'
     mqtt_port: 8883
     mqtt_tls_enabled: true
+    rtsp_host: 'rtsp.burelli.xyz'
+    rtsp_port: 8554
   hosts:
     raspi-1:
       device_name: 'raspi-1'

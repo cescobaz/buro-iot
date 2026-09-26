@@ -17,7 +17,7 @@
         state: directory
         mode: '0755'
     - name: Install mqtt-camera executables
-      ansible.builtin.copy:
+      ansible.builtin.template:
         src: "../../camera/{{ item }}"
         dest: /opt/mqtt-camera/
         owner: pi

@@ -22,7 +22,7 @@
         mode: '0755'
     - name: Install mqtt-io config.yaml
       ansible.builtin.template:
-        src: "../{{name}}/mqtt-io-config.yaml"
+        src: "../{{ inventory_hostname }}/mqtt-io-config.yaml"
         dest: /etc/mqtt-io/config.yaml
         owner: pi
         group: pi
