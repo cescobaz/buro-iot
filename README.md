@@ -116,11 +116,63 @@ UDP rule would forward to nothing.
 no open port at all - it reads from the container over the internal `main`
 docker network (`rtsp://rtsp-server:8554/<path>`).
 
+#### RTSP read credentials
+
+Publishing is anonymous; reading needs a user. It is defined once in the
+inventory under `all.vars` so the rtsp-server config and every consumer
+(Home Assistant, ffplay, ...) share one definition:
+
+- `rtsp_read_user` - plain, currently `homeassistant`
+- `rtsp_read_password` - vault-encrypted
+
+`rtsp-server/etc/mediamtx.yml` is templated, so both are rendered into
+`authInternalUsers` at deploy time. If `rtsp_read_password` is missing the
+deploy fails loudly with an undefined-variable error rather than silently
+shipping a broken config.
+
+To create the password and the encrypted var:
+
+```bash
+PW=$(openssl rand -base64 24) && echo "password: $PW" && \
+  printf '%s' "$PW" | ansible-vault encrypt_string \
+    --vault-password-file .vault-password --stdin-name 'rtsp_read_password'
+```
+
+Use `printf '%s'`, not `echo`: `echo` appends a newline and ansible-vault keeps
+it, so the stored password ends in `\n` and every login fails.
+
+Paste the `rtsp_read_password: !vault |` block it prints into `all.vars` in
+`inventory.yml`, next to `rtsp_read_user`, then redeploy:
+
+```bash
+ansible-playbook --vault-password-file .vault-password rtsp-server/playbook/deploy-docker.yml
+```
+
+Rotating the password is the same procedure: re-run the command, replace the
+block, redeploy.
+
+### Local credentials for testing
+
+`write-credentials.yml` decrypts the vault vars needed for manual testing into
+`./credentials.env`. It runs on the control machine only and contacts no host;
+the task is `no_log`, so the secrets go from the vault straight to the file,
+which is written `0600` and is gitignored.
+
+```bash
+ansible-playbook --vault-password-file .vault-password write-credentials.yml
+set -a; . ./credentials.env; set +a
+```
+
+It gives you `MQTT_URL`, `CAM_CMD_TOPIC`, `CAM_STATE_TOPIC`, `RTSP_URL` and the
+individual `MQTT_*` / `RTSP_READ_*` parts. The topics are derived from
+`device_name` and `iot_area`, so they follow a renamed area. Re-run it after
+rotating anything in the inventory.
+
 ### Test the stream with ffmpeg
 
 The stream path is the camera's `object_id`, i.e. `<iot_area>-camera-mqtt`
-(`living-camera-mqtt` for raspi-1). Reading requires the `homeassistant`
-credentials from `rtsp-server/etc/mediamtx.yml`; publishing is anonymous.
+(`living-camera-mqtt` for raspi-1). Reading needs the credentials above;
+publishing is anonymous. These assume `credentials.env` is sourced.
 
 ```bash
 # 1. publish a synthetic stream
@@ -129,19 +181,23 @@ ffmpeg -re -f lavfi -i testsrc=size=640x480:rate=15 \
   -f rtsp -rtsp_transport tcp rtsp://rtsp.burelli.xyz:8554/test
 
 # 2. play it back over RTSP
-ffplay -rtsp_transport tcp 'rtsp://homeassistant:<password>@rtsp.burelli.xyz:8554/test'
+ffplay -rtsp_transport tcp "rtsp://$RTSP_READ_USER:$RTSP_READ_PASS@rtsp.burelli.xyz:8554/test"
 
 # 3. or play it back over HLS through traefik on 443
-ffplay 'https://homeassistant:<password>@rtsp.burelli.xyz/test/index.m3u8'
+ffplay "https://$RTSP_READ_USER:$RTSP_READ_PASS@rtsp.burelli.xyz/test/index.m3u8"
 ```
+
+Keep the publisher running while you probe: a reader that arrives after the
+publisher has exited gets `no stream is available on path ...`, which looks
+like an auth failure but is not.
 
 To test the real camera instead of a synthetic source, ask it to start
 streaming over MQTT and then play its path:
 
 ```bash
-mosquitto_pub --url "mqtt://<user>:<pass>@mqtt.burelli.xyz:8883/raspi-1/select/living-camera-mqtt-state/commands" -m streaming
-ffplay -rtsp_transport tcp 'rtsp://homeassistant:<password>@rtsp.burelli.xyz:8554/living-camera-mqtt'
-mosquitto_pub --url "mqtt://<user>:<pass>@mqtt.burelli.xyz:8883/raspi-1/select/living-camera-mqtt-state/commands" -m ready
+mosquitto_pub --url "$MQTT_URL/$CAM_CMD_TOPIC" -m streaming
+ffplay -rtsp_transport tcp "$RTSP_URL"
+mosquitto_pub --url "$MQTT_URL/$CAM_CMD_TOPIC" -m ready
 ```
 
 Check the server side while testing:

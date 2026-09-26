@@ -25,11 +25,12 @@ authInternalUsers:
       - action: publish
         path:
 
-  # Home Assistant reads the streams. Hash carried over from the 0.22 config.
-  # Generate a replacement with:
-  #   echo -n 'the-password' | openssl dgst -binary -sha256 | openssl base64
-  - user: homeassistant
-    pass: sha256:sTOgwOm+474gFj0q0x1iSNspKqbcse4IeiqlDg/HWuI=
+  # Stream readers: Home Assistant, ffplay, anything else that needs to watch.
+  # Credentials come from the inventory (all.vars) so every consumer shares one
+  # definition - see "RTSP read credentials" in README.md. mediamtx also accepts
+  # a "sha256:<base64>" value here if you would rather not render the plaintext.
+  - user: '{{ rtsp_read_user }}'
+    pass: '{{ rtsp_read_password }}'
     ips: []
     permissions:
       - action: read

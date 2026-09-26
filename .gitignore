@@ -68,3 +68,5 @@ tags
 # Snapshots pulled down by download-media.sh / rsync-media.sh
 /media/
 /data/
+# Decrypted secrets for local testing, never commit
+/credentials.env
