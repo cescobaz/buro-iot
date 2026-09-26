@@ -1,7 +1,7 @@
 #!/bin/ansible-playbook
 
 - hosts:
-    - raspi-1
+    - raspi_camera
   become: yes
   tasks:
     - name: Install packages

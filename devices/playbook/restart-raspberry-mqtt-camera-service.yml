@@ -1,8 +1,7 @@
 #!/bin/ansible-playbook
 
 - hosts:
-    - raspi-1
-    - raspi-3
+    - raspi_camera
   become: yes
   tasks:
     - name: ReStart mqtt-camera service
